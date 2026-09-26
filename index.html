@@ -1,0 +1,1263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MPAPS Internet Solutions Ltd - Management System</title>
+    <style>
+        /* --- MPAPS BRAND COLORS --- */
+        :root {
+            --mpaps-navy: #050C1D;
+            --mpaps-blue: #0A1C40;
+            --mpaps-red: #E60000;
+            --mpaps-green: #00D000;
+            --mpaps-yellow: #FFD700;
+            --text-light: #FFFFFF;
+            --text-dark: #333333;
+            --text-gray: #A0AAB5;
+            --border-color: #1E3A8A;
+            --card-bg: #0F2557;
+            --input-bg: #0A1C40;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--mpaps-navy);
+            color: var(--text-light);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            background-image: radial-gradient(circle at 50% 50%, #0A1C40 0%, #050C1D 100%);
+        }
+
+        /* --- HEADER --- */
+        header {
+            background-color: rgba(5, 12, 29, 0.9);
+            border-bottom: 2px solid var(--mpaps-red);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo-container { display: flex; align-items: center; gap: 10px; }
+        .logo-icon { width: 40px; height: 40px; }
+        .logo-text { display: flex; flex-direction: column; }
+        .logo-text .brand { font-size: 1.5rem; font-weight: 900; color: var(--mpaps-red); line-height: 1; letter-spacing: 1px; }
+        .logo-text .sub-brand { font-size: 0.75rem; font-weight: 600; color: var(--text-light); letter-spacing: 0.5px; }
+
+        .user-info { display: flex; align-items: center; gap: 15px; font-size: 0.9rem; }
+
+        .btn {
+            padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: 700; font-size: 0.9rem; transition: all 0.2s ease; text-transform: uppercase;
+        }
+        .btn-primary { background-color: var(--mpaps-red); color: white; }
+        .btn-primary:hover { background-color: #B30000; }
+        .btn-success { background-color: var(--mpaps-green); color: var(--mpaps-navy); }
+        .btn-success:hover { background-color: #00A000; }
+        .btn-warning { background-color: var(--mpaps-yellow); color: var(--mpaps-navy); }
+        .btn-warning:hover { background-color: #E6C200; }
+        .btn-outline { background: transparent; border: 1px solid var(--text-gray); color: var(--text-light); }
+        .btn-outline:hover { background: var(--text-light); color: var(--mpaps-navy); }
+        .btn-small { padding: 5px 10px; font-size: 0.8rem; }
+        .btn-danger { background-color: var(--mpaps-red); color: white; }
+
+        /* --- MAIN CONTAINER --- */
+        main { flex: 1; padding: 2rem; max-width: 1200px; margin: 0 auto; width: 100%; }
+
+        /* --- AUTH VIEWS --- */
+        .auth-container {
+            max-width: 450px; margin: 40px auto; background: var(--card-bg); padding: 2.5rem; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border-top: 5px solid var(--mpaps-green); text-align: center;
+        }
+        .auth-container h2 { margin-bottom: 1.5rem; color: var(--text-light); font-size: 1.8rem; }
+        .auth-container p { color: var(--text-gray); margin-bottom: 1.5rem; font-size: 0.9rem; }
+
+        .form-group { margin-bottom: 1.2rem; text-align: left; }
+        .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 600; font-size: 0.85rem; color: var(--text-gray); text-transform: uppercase; }
+        .form-control {
+            width: 100%; padding: 12px; background: var(--input-bg); border: 1px solid var(--border-color); border-radius: 6px; font-size: 1rem; color: var(--text-light); transition: border 0.3s;
+        }
+        .form-control:focus { outline: none; border-color: var(--mpaps-green); box-shadow: 0 0 0 2px rgba(0, 208, 0, 0.2); }
+
+        .auth-toggle { margin-top: 1.5rem; font-size: 0.9rem; color: var(--text-gray); }
+        .auth-toggle a { color: var(--mpaps-green); cursor: pointer; text-decoration: none; font-weight: bold; }
+        .auth-toggle a:hover { text-decoration: underline; }
+
+        /* --- DASHBOARD CARDS --- */
+        .dashboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; flex-wrap: wrap; gap: 15px; }
+        .dashboard-header h2 { font-size: 1.8rem; color: var(--text-light); }
+
+        .grid-menu { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .card {
+            background: var(--card-bg); padding: 1.5rem; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); border-left: 4px solid var(--mpaps-green); transition: transform 0.2s;
+        }
+        .card:hover { transform: translateY(-5px); }
+        .card h3 { margin-bottom: 0.8rem; color: var(--mpaps-yellow); font-size: 1.2rem; }
+        .card p { margin-bottom: 1.2rem; color: var(--text-gray); font-size: 0.9rem; line-height: 1.5; }
+
+        /* --- TABLES --- */
+        .table-responsive { overflow-x: auto; margin-top: 1rem; background: var(--card-bg); border-radius: 8px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border-color); font-size: 0.9rem; }
+        th { background-color: var(--mpaps-blue); font-weight: 700; color: var(--mpaps-yellow); text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.5px; }
+        tr:hover { background-color: rgba(255,255,255,0.03); }
+
+        /* --- FORMS --- */
+        .form-section {
+            background: var(--card-bg); padding: 2rem; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); margin-bottom: 2rem; border-top: 3px solid var(--mpaps-red);
+        }
+        .form-section h3 { margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; color: var(--mpaps-green); font-size: 1.3rem; }
+        .form-section h4 { margin-top: 20px; margin-bottom: 15px; color: var(--mpaps-yellow); font-size: 1.1rem; border-bottom: 1px dashed var(--border-color); padding-bottom: 5px; }
+        
+        .form-row { display: flex; gap: 1.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+        .form-row > .form-group { flex: 1; min-width: 200px; }
+
+        /* Checklist */
+        .checklist-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: var(--input-bg); border-radius: 6px; margin-bottom: 8px; border: 1px solid var(--border-color); flex-wrap: wrap; gap: 10px; }
+        .checklist-item span { flex: 1; font-size: 0.9rem; }
+        .radio-group { display: flex; gap: 15px; }
+        .radio-group label { display: flex; align-items: center; gap: 5px; font-size: 0.85rem; cursor: pointer; }
+        .radio-group input[type="radio"] { accent-color: var(--mpaps-green); cursor: pointer; width: 16px; height: 16px; }
+
+        /* Equipment Table */
+        .equipment-table input { width: 100%; background: transparent; border: none; color: var(--text-light); padding: 5px; font-size: 0.85rem; }
+        .equipment-table input:focus { outline: 1px solid var(--mpaps-green); background: rgba(0,0,0,0.2); }
+        .equipment-table td, .equipment-table th { padding: 8px; }
+
+        /* Admin Section */
+        .admin-section { background: rgba(255, 215, 0, 0.05); border: 1px solid var(--mpaps-yellow); padding: 20px; border-radius: 8px; margin-top: 20px; }
+        .admin-section h4 { color: var(--mpaps-yellow); border-bottom: none; }
+        .admin-section .form-control { background: rgba(0,0,0,0.2); pointer-events: none; opacity: 0.7; }
+        .admin-section .note { font-size: 0.8rem; color: var(--mpaps-yellow); margin-bottom: 10px; }
+
+        /* --- UTILITIES --- */
+        .hidden { display: none !important; }
+        .text-center { text-align: center; }
+        .mt-3 { margin-top: 1rem; }
+        .mb-3 { margin-bottom: 1rem; }
+        
+        .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; }
+        .status-pending { background: var(--mpaps-yellow); color: var(--mpaps-navy); }
+        .status-approved { background: var(--mpaps-green); color: var(--mpaps-navy); }
+        .status-rejected { background: var(--mpaps-red); color: white; }
+
+        /* --- MODAL --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center; z-index: 1000; padding: 20px;
+        }
+        .modal-content {
+            background: var(--card-bg); border-radius: 12px; width: 100%; max-width: 800px; max-height: 90vh; overflow-y: auto; border: 1px solid var(--border-color); box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        }
+        .modal-header {
+            background: var(--mpaps-blue); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); border-radius: 12px 12px 0 0;
+        }
+        .modal-header h3 { margin: 0; color: var(--mpaps-yellow); font-size: 1.2rem; }
+        .modal-body { padding: 20px; }
+        .modal-footer { padding: 15px 20px; background: var(--input-bg); border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 10px; border-radius: 0 0 12px 12px; }
+
+        .receipt-preview { max-width: 100%; max-height: 400px; display: block; margin: 0 auto; border: 1px solid var(--border-color); border-radius: 4px; }
+
+        /* --- MOBILE RESPONSIVENESS --- */
+        @media (max-width: 768px) {
+            header { flex-direction: column; gap: 10px; text-align: center; }
+            .form-row { flex-direction: column; gap: 0; }
+            main { padding: 1rem; }
+            .auth-container { margin: 10px auto; padding: 1.5rem; }
+            .checklist-item { flex-direction: column; align-items: flex-start; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- HEADER -->
+    <header id="app-header" class="hidden">
+        <div class="logo-container">
+            <svg class="logo-icon" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M50 85C55.5228 85 60 80.5228 60 75C60 69.4772 55.5228 65 50 65C44.4772 65 40 69.4772 40 75C40 80.5228 44.4772 85 50 85Z" fill="#00D000"/>
+                <path d="M30 55C41.0457 43.9543 58.9543 43.9543 70 55" stroke="#00D000" stroke-width="10" stroke-linecap="round"/>
+                <path d="M15 35C35.5 14.5 64.5 14.5 85 35" stroke="#00D000" stroke-width="10" stroke-linecap="round"/>
+            </svg>
+            <div class="logo-text">
+                <span class="brand">MPAPS</span>
+                <span class="sub-brand">Internet Solution Limited</span>
+            </div>
+        </div>
+        <div class="user-info">
+            <span id="header-user-name">User</span>
+            <button class="btn btn-outline btn-small" onclick="logout()">Logout</button>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT AREA -->
+    <main id="app-main">
+        <div id="dynamic-view"></div>
+    </main>
+
+    <!-- MODAL CONTAINER -->
+    <div id="modal-container" class="hidden"></div>
+
+    <script>
+        // --- 1. DATABASE SIMULATION (LocalStorage) ---
+        const DB = {
+            // Device Locking
+            isDeviceLocked: () => localStorage.getItem('mpaps_device_locked') === 'true',
+            lockDevice: () => localStorage.setItem('mpaps_device_locked', 'true'),
+
+            // Users
+            getUsers: () => JSON.parse(localStorage.getItem('mpaps_users')) || [],
+            saveUsers: (users) => localStorage.setItem('mpaps_users', JSON.stringify(users)),
+            
+            // Mileage
+            getMileage: () => JSON.parse(localStorage.getItem('mpaps_mileage')) || [],
+            saveMileage: (data) => {
+                const existing = DB.getMileage();
+                existing.unshift(data);
+                localStorage.setItem('mpaps_mileage', JSON.stringify(existing));
+            },
+            
+            // Job Cards
+            getJobCards: () => JSON.parse(localStorage.getItem('mpaps_jobcards')) || [],
+            saveJobCard: (data) => {
+                const existing = DB.getJobCards();
+                existing.unshift(data);
+                localStorage.setItem('mpaps_jobcards', JSON.stringify(existing));
+            },
+            updateJobCard: (id, status, supervisorName) => {
+                const jobcards = DB.getJobCards();
+                const index = jobcards.findIndex(j => j.id === id);
+                if (index !== -1) {
+                    jobcards[index].status = status;
+                    jobcards[index].supervisorName = supervisorName;
+                    jobcards[index].supervisorDate = new Date().toISOString().split('T')[0];
+                    localStorage.setItem('mpaps_jobcards', JSON.stringify(jobcards));
+                }
+            }
+        };
+
+        let currentUser = JSON.parse(sessionStorage.getItem('mpaps_currentUser')) || null;
+
+        // --- 2. AUTHENTICATION LOGIC ---
+        function handleLogin(e) {
+            e.preventDefault();
+            const username = document.getElementById('login-username').value.trim();
+            const password = document.getElementById('login-password').value;
+            const users = DB.getUsers();
+            
+            const user = users.find(u => u.username === username && u.password === password);
+            
+            if (!user) {
+                alert('Invalid username or password!');
+                return;
+            }
+
+            if (user.role === 'technician' && user.status === 'pending') {
+                alert('Your account is pending approval by the Administrator. Please check back later.');
+                return;
+            }
+            if (user.role === 'technician' && user.status === 'rejected') {
+                alert('Your account registration was rejected. Please contact the Administrator.');
+                return;
+            }
+
+            currentUser = user;
+            sessionStorage.setItem('mpaps_currentUser', JSON.stringify(user));
+            initApp();
+        }
+
+        function handleSignup(e) {
+            e.preventDefault();
+            const name = document.getElementById('signup-name').value.trim();
+            const username = document.getElementById('signup-username').value.trim();
+            const password = document.getElementById('signup-password').value;
+            const users = DB.getUsers();
+
+            if (users.some(u => u.username === username)) {
+                alert('Username already exists! Please choose another.');
+                return;
+            }
+
+            const newTech = {
+                id: Date.now(),
+                name: name,
+                username: username,
+                password: password,
+                role: 'technician',
+                status: 'pending'
+            };
+
+            users.push(newTech);
+            DB.saveUsers(users);
+            alert('Registration successful! Please wait for Admin approval before logging in.');
+            renderLogin();
+        }
+
+        function handleFirstTimeSetup(e) {
+            e.preventDefault();
+            const name = document.getElementById('setup-name').value.trim();
+            const username = document.getElementById('setup-username').value.trim();
+            const password = document.getElementById('setup-password').value;
+
+            const masterAdmin = {
+                id: Date.now(),
+                name: name,
+                username: username,
+                password: password,
+                role: 'admin',
+                status: 'approved',
+                isMaster: true
+            };
+
+            DB.saveUsers([masterAdmin]);
+            DB.lockDevice(); // Lock this device to prevent future admin setups
+            alert('Master Admin created successfully! This device is now locked for Admin setup. You can now log in.');
+            renderLogin();
+        }
+
+        function logout() {
+            currentUser = null;
+            sessionStorage.removeItem('mpaps_currentUser');
+            initApp();
+        }
+
+        // --- 3. ROUTING & VIEW RENDERING ---
+        function initApp() {
+            const header = document.getElementById('app-header');
+            const dynamicView = document.getElementById('dynamic-view');
+            const modalContainer = document.getElementById('modal-container');
+            
+            // Close any open modals on navigation
+            modalContainer.classList.add('hidden');
+            modalContainer.innerHTML = '';
+
+            if (!currentUser) {
+                header.classList.add('hidden');
+                const users = DB.getUsers();
+                
+                // Check Device Lock Logic
+                if (users.length === 0 && !DB.isDeviceLocked()) {
+                    renderFirstTimeSetup();
+                } else {
+                    renderLogin();
+                }
+            } else {
+                header.classList.remove('hidden');
+                document.getElementById('header-user-name').innerText = `${currentUser.name} (${currentUser.role.toUpperCase()})`;
+                
+                if (currentUser.role === 'admin') {
+                    renderAdminDashboard();
+                } else {
+                    renderTechDashboard();
+                }
+            }
+        }
+
+        // --- 4. AUTH VIEWS ---
+        function renderFirstTimeSetup() {
+            document.getElementById('dynamic-view').innerHTML = `
+                <div class="auth-container" style="border-top-color: var(--mpaps-red);">
+                    <h2>System Setup</h2>
+                    <p>Welcome to MPAPS Internet Solutions Ltd. Since this is the first time the system is running on this device, please create the Master Admin account.</p>
+                    <p style="color: var(--mpaps-yellow); font-size: 0.8rem; font-weight: bold;">Note: Once created, Admin setup is permanently locked on this device.</p>
+                    <form onsubmit="handleFirstTimeSetup(event)">
+                        <div class="form-group">
+                            <label>Full Name</label>
+                            <input type="text" id="setup-name" class="form-control" required placeholder="e.g., System Administrator">
+                        </div>
+                        <div class="form-group">
+                            <label>Admin Username</label>
+                            <input type="text" id="setup-username" class="form-control" required placeholder="Create a username">
+                        </div>
+                        <div class="form-group">
+                            <label>Admin Password</label>
+                            <input type="password" id="setup-password" class="form-control" required placeholder="Create a strong password">
+                        </div>
+                        <button type="submit" class="btn btn-success" style="width: 100%;">Create Master Admin</button>
+                    </form>
+                </div>
+            `;
+        }
+
+        function renderLogin() {
+            document.getElementById('dynamic-view').innerHTML = `
+                <div class="auth-container">
+                    <h2>System Login</h2>
+                    <p>Enter your credentials to access the MPAPS management portal.</p>
+                    <form onsubmit="handleLogin(event)">
+                        <div class="form-group">
+                            <label>Username</label>
+                            <input type="text" id="login-username" class="form-control" required placeholder="Enter username">
+                        </div>
+                        <div class="form-group">
+                            <label>Password</label>
+                            <input type="password" id="login-password" class="form-control" required placeholder="Enter password">
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="width: 100%;">Login</button>
+                    </form>
+                    <div class="auth-toggle">
+                        Are you a technician? <a onclick="renderSignup()">Sign Up Here</a>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderSignup() {
+            document.getElementById('dynamic-view').innerHTML = `
+                <div class="auth-container" style="border-top-color: var(--mpaps-yellow);">
+                    <h2>Technician Sign Up</h2>
+                    <p>Register your account. An Admin will review and approve your access.</p>
+                    <form onsubmit="handleSignup(event)">
+                        <div class="form-group">
+                            <label>Full Name</label>
+                            <input type="text" id="signup-name" class="form-control" required placeholder="Enter your full name">
+                        </div>
+                        <div class="form-group">
+                            <label>Username</label>
+                            <input type="text" id="signup-username" class="form-control" required placeholder="Choose a username">
+                        </div>
+                        <div class="form-group">
+                            <label>Password</label>
+                            <input type="password" id="signup-password" class="form-control" required placeholder="Create a password">
+                        </div>
+                        <button type="submit" class="btn btn-warning" style="width: 100%;">Register Account</button>
+                    </form>
+                    <div class="auth-toggle">
+                        Already have an account? <a onclick="renderLogin()">Login Here</a>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- 5. ADMIN DASHBOARD ---
+        function renderAdminDashboard() {
+            const mileage = DB.getMileage();
+            const jobcards = DB.getJobCards();
+            const users = DB.getUsers();
+            const pendingTechs = users.filter(u => u.role === 'technician' && u.status === 'pending');
+            
+            let html = `
+                <div class="dashboard-header">
+                    <h2>Admin Dashboard</h2>
+                    ${currentUser.isMaster ? `<button class="btn btn-primary" onclick="renderCreateAdminForm()">+ Create New Admin</button>` : ''}
+                </div>
+
+                ${pendingTechs.length > 0 ? `
+                <div class="form-section" style="border-top-color: var(--mpaps-yellow);">
+                    <h3>⚠️ Pending Technician Approvals (${pendingTechs.length})</h3>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Username</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${pendingTechs.map(t => `
+                                    <tr>
+                                        <td>${t.name}</td>
+                                        <td>${t.username}</td>
+                                        <td>
+                                            <button class="btn btn-success btn-small" onclick="approveTech(${t.id})">Approve</button>
+                                            <button class="btn btn-outline btn-small" onclick="rejectTech(${t.id})">Reject</button>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                ` : ''}
+                
+                <div class="grid-menu mb-3">
+                    <div class="card">
+                        <h3>Vehicle Mileage Sheets</h3>
+                        <p>Total submissions: ${mileage.length}</p>
+                        <button class="btn btn-success" onclick="downloadCSV('mileage')">Download CSV</button>
+                    </div>
+                    <div class="card" style="border-left-color: var(--mpaps-yellow);">
+                        <h3>Job Cards</h3>
+                        <p>Total submissions: ${jobcards.length}</p>
+                        <button class="btn btn-warning" onclick="downloadCSV('jobcards')">Download CSV</button>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>Recent Mileage Submissions</h3>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Driver</th>
+                                    <th>Vehicle</th>
+                                    <th>Total KM</th>
+                                    <th>Fuel (L)</th>
+                                    <th>Receipt</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${mileage.length === 0 ? '<tr><td colspan="6" class="text-center">No mileage records found.</td></tr>' : 
+                                  mileage.map(m => `
+                                    <tr>
+                                        <td>${m.date}</td>
+                                        <td>${m.driver}</td>
+                                        <td>${m.vehicle}</td>
+                                        <td>${m.arrivalMileage - m.departureMileage} KM</td>
+                                        <td>${m.fuelQty}</td>
+                                        <td>
+                                            ${m.receiptData ? `<button class="btn btn-primary btn-small" onclick="viewReceipt('${m.id}')">View Receipt</button>` : '❌ None'}
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>Recent Job Cards</h3>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Job No.</th>
+                                    <th>Date</th>
+                                    <th>Customer</th>
+                                    <th>Job Type</th>
+                                    <th>Technician</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${jobcards.length === 0 ? '<tr><td colspan="7" class="text-center">No job cards found.</td></tr>' : 
+                                  jobcards.map(j => `
+                                    <tr>
+                                        <td>${j.jobNo}</td>
+                                        <td>${j.date}</td>
+                                        <td>${j.customerName}</td>
+                                        <td>${j.jobType}</td>
+                                        <td>${j.technician}</td>
+                                        <td><span class="status-badge status-${j.status || 'pending'}">${j.status || 'Pending'}</span></td>
+                                        <td><button class="btn btn-warning btn-small" onclick="viewJobCard('${j.id}')">View Details</button></td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+            document.getElementById('dynamic-view').innerHTML = html;
+        }
+
+        function renderCreateAdminForm() {
+            let html = `
+                <div class="dashboard-header">
+                    <h2>Create New Admin</h2>
+                    <button class="btn btn-outline btn-small" onclick="renderAdminDashboard()">Back to Dashboard</button>
+                </div>
+                <div class="form-section">
+                    <form onsubmit="submitNewAdmin(event)">
+                        <div class="form-group">
+                            <label>Full Name</label>
+                            <input type="text" id="new-admin-name" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Username</label>
+                            <input type="text" id="new-admin-username" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Password</label>
+                            <input type="password" id="new-admin-password" class="form-control" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary mt-3">Create Admin Account</button>
+                    </form>
+                </div>
+            `;
+            document.getElementById('dynamic-view').innerHTML = html;
+        }
+
+        function submitNewAdmin(e) {
+            e.preventDefault();
+            const users = DB.getUsers();
+            const username = document.getElementById('new-admin-username').value.trim();
+            
+            if (users.some(u => u.username === username)) {
+                alert('Username already exists!');
+                return;
+            }
+
+            users.push({
+                id: Date.now(),
+                name: document.getElementById('new-admin-name').value.trim(),
+                username: username,
+                password: document.getElementById('new-admin-password').value,
+                role: 'admin',
+                status: 'approved',
+                isMaster: false
+            });
+            DB.saveUsers(users);
+            alert('New Admin created successfully!');
+            renderAdminDashboard();
+        }
+
+        function approveTech(id) {
+            const users = DB.getUsers();
+            const user = users.find(u => u.id === id);
+            if (user) {
+                user.status = 'approved';
+                DB.saveUsers(users);
+                alert(`${user.name} has been approved.`);
+                renderAdminDashboard();
+            }
+        }
+
+        function rejectTech(id) {
+            const users = DB.getUsers();
+            const user = users.find(u => u.id === id);
+            if (user) {
+                user.status = 'rejected';
+                DB.saveUsers(users);
+                alert(`${user.name} has been rejected.`);
+                renderAdminDashboard();
+            }
+        }
+
+        // --- 6. TECHNICIAN DASHBOARD ---
+        function renderTechDashboard() {
+            let html = `
+                <div class="dashboard-header">
+                    <h2>Welcome, ${currentUser.name}</h2>
+                </div>
+                
+                <div class="grid-menu">
+                    <div class="card">
+                        <h3>📝 Vehicle Movement Sheet</h3>
+                        <p>Record daily mileage, fuel usage, and upload fuel receipts.</p>
+                        <button class="btn btn-success" onclick="renderMileageForm()">Fill Mileage Form</button>
+                    </div>
+                    <div class="card" style="border-left-color: var(--mpaps-yellow);">
+                        <h3>🛠️ Job Card</h3>
+                        <p>Record customer installations, equipment used, and get digital signatures.</p>
+                        <button class="btn btn-warning" onclick="renderJobCardForm()">Fill Job Card</button>
+                    </div>
+                    <div class="card" style="border-left-color: #00D000;">
+                        <h3>📊 My Submissions</h3>
+                        <p>Track the status of your submitted Mileage Sheets and Job Cards.</p>
+                        <button class="btn btn-primary" onclick="renderTechSubmissions()">View My Submissions</button>
+                    </div>
+                </div>
+            `;
+            document.getElementById('dynamic-view').innerHTML = html;
+        }
+
+        function renderTechSubmissions() {
+            const allMileage = DB.getMileage();
+            const allJobCards = DB.getJobCards();
+            
+            const myMileage = allMileage.filter(m => m.technicianId === currentUser.id);
+            const myJobCards = allJobCards.filter(j => j.technicianId === currentUser.id);
+
+            let html = `
+                <div class="dashboard-header">
+                    <h2>My Submissions</h2>
+                    <button class="btn btn-outline btn-small" onclick="renderTechDashboard()">Back to Dashboard</button>
+                </div>
+
+                <div class="form-section">
+                    <h3>My Mileage Sheets</h3>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Vehicle</th>
+                                    <th>Total KM</th>
+                                    <th>Fuel (L)</th>
+                                    <th>Receipt</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${myMileage.length === 0 ? '<tr><td colspan="5" class="text-center">No mileage records found.</td></tr>' : 
+                                  myMileage.map(m => `
+                                    <tr>
+                                        <td>${m.date}</td>
+                                        <td>${m.vehicle}</td>
+                                        <td>${m.arrivalMileage - m.departureMileage} KM</td>
+                                        <td>${m.fuelQty}</td>
+                                        <td>${m.receiptName ? '✅ Attached' : '❌ None'}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>My Job Cards</h3>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Job No.</th>
+                                    <th>Date</th>
+                                    <th>Customer</th>
+                                    <th>Job Type</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${myJobCards.length === 0 ? '<tr><td colspan="5" class="text-center">No job cards found.</td></tr>' : 
+                                  myJobCards.map(j => `
+                                    <tr>
+                                        <td>${j.jobNo}</td>
+                                        <td>${j.date}</td>
+                                        <td>${j.customerName}</td>
+                                        <td>${j.jobType}</td>
+                                        <td><span class="status-badge status-${j.status || 'pending'}">${j.status || 'Pending'}</span></td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+            document.getElementById('dynamic-view').innerHTML = html;
+        }
+
+        // --- 7. MILEAGE FORM ---
+        function renderMileageForm() {
+            let html = `
+                <div class="dashboard-header">
+                    <h2>Vehicle Movement Sheet</h2>
+                    <button class="btn btn-outline btn-small" onclick="renderTechDashboard()">Back to Dashboard</button>
+                </div>
+
+                <div class="form-section">
+                    <h3>MPAPS Internet Solution Limited</h3>
+                    <form id="mileage-form" onsubmit="submitMileage(event)">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Date</label>
+                                <input type="date" id="m-date" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Driver Name</label>
+                                <input type="text" id="m-driver" class="form-control" value="${currentUser.name}" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>Vehicle No Plate</label>
+                                <input type="text" id="m-vehicle" class="form-control" placeholder="e.g., KDA 123X" required>
+                            </div>
+                        </div>
+
+                        <h4>Trip Details</h4>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Departure From</label>
+                                <input type="text" id="m-from" class="form-control" placeholder="e.g., Junction" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Departure Time</label>
+                                <input type="time" id="m-dep-time" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Departure Mileage (KM)</label>
+                                <input type="number" id="m-dep-mileage" class="form-control" placeholder="e.g., 149769" required>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Arrival To</label>
+                                <input type="text" id="m-to" class="form-control" placeholder="e.g., Nyando" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Arrival Time</label>
+                                <input type="time" id="m-arr-time" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Arrival Mileage (KM)</label>
+                                <input type="number" id="m-arr-mileage" class="form-control" placeholder="e.g., 149773" required>
+                            </div>
+                        </div>
+
+                        <h4>Refueling Details (Optional)</h4>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Fuel Qty (Litres)</label>
+                                <input type="number" id="m-fuel-qty" class="form-control" placeholder="e.g., 10">
+                            </div>
+                            <div class="form-group">
+                                <label>Fuel Amount (Ksh)</label>
+                                <input type="number" id="m-fuel-amount" class="form-control" placeholder="e.g., 1500">
+                            </div>
+                            <div class="form-group">
+                                <label>Upload Fuel Receipt (Image/PDF)</label>
+                                <input type="file" id="m-receipt" class="form-control" accept="image/*,.pdf">
+                            </div>
+                        </div>
+
+                        <div class="form-group mt-3">
+                            <label>Remarks</label>
+                            <input type="text" id="m-remarks" class="form-control" placeholder="Any additional notes">
+                        </div>
+
+                        <button type="submit" class="btn btn-success mt-3">Submit Mileage Sheet</button>
+                    </form>
+                </div>
+            `;
+            document.getElementById('dynamic-view').innerHTML = html;
+        }
+
+        function submitMileage(e) {
+            e.preventDefault();
+            
+            const fileInput = document.getElementById('m-receipt');
+            const file = fileInput.files[0];
+            
+            const saveData = (receiptData = null, receiptName = null) => {
+                const mileageData = {
+                    id: Date.now().toString(),
+                    technicianId: currentUser.id,
+                    date: document.getElementById('m-date').value,
+                    driver: document.getElementById('m-driver').value,
+                    vehicle: document.getElementById('m-vehicle').value,
+                    from: document.getElementById('m-from').value,
+                    depTime: document.getElementById('m-dep-time').value,
+                    departureMileage: parseFloat(document.getElementById('m-dep-mileage').value),
+                    to: document.getElementById('m-to').value,
+                    arrTime: document.getElementById('m-arr-time').value,
+                    arrivalMileage: parseFloat(document.getElementById('m-arr-mileage').value),
+                    fuelQty: document.getElementById('m-fuel-qty').value || '0',
+                    fuelAmount: document.getElementById('m-fuel-amount').value || '0',
+                    receiptName: receiptName,
+                    receiptData: receiptData, // Base64 string
+                    remarks: document.getElementById('m-remarks').value,
+                    status: 'pending'
+                };
+
+                DB.saveMileage(mileageData);
+                alert('Mileage sheet submitted successfully! Admin has been notified.');
+                renderTechDashboard();
+            };
+
+            if (file) {
+                // Check file size (limit to 2MB for localStorage safety)
+                if (file.size > 2 * 1024 * 1024) {
+                    alert('File is too large. Please upload an image/PDF smaller than 2MB.');
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    saveData(event.target.result, file.name);
+                };
+                reader.readAsDataURL(file);
+            } else {
+                saveData(null, null);
+            }
+        }
+
+        // --- 8. JOB CARD FORM ---
+        function renderJobCardForm() {
+            const checklistItems = [
+                "1. Customer details verified", "2. Site survey completed", "3. Fibre route planned and agreed",
+                "4. Fibre entry point agreed and sealed", "5. Fibre installed and secured properly", "6. No sharp bends on fibre",
+                "7. Fibre termination completed", "8. ONT installed and mounted securely", "9. Power source available and tested",
+                "10. Internet connectivity confirmed", "11. Basic service test done (browsing/speed)", "12. Customer briefed on equipment/service",
+                "13. Company Router", "14. Customer's Router"
+            ];
+
+            let checklistHTML = checklistItems.map((item, index) => `
+                <div class="checklist-item">
+                    <span>${item}</span>
+                    <div class="radio-group">
+                        <label><input type="radio" name="chk${index+1}" value="Yes" required> Yes</label>
+                        <label><input type="radio" name="chk${index+1}" value="No"> No</label>
+                        <label><input type="radio" name="chk${index+1}" value="N/A"> N/A</label>
+                    </div>
+                </div>
+            `).join('');
+
+            let html = `
+                <div class="dashboard-header">
+                    <h2>Job Card</h2>
+                    <button class="btn btn-outline btn-small" onclick="renderTechDashboard()">Back to Dashboard</button>
+                </div>
+
+                <div class="form-section">
+                    <h3>MPAPS Internet Solution Limited - Job Card</h3>
+                    <form id="jobcard-form" onsubmit="submitJobCard(event)">
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Job Card No.</label>
+                                <input type="text" id="j-no" class="form-control" value="JC-${Math.floor(Math.random() * 10000)}" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>Date</label>
+                                <input type="date" id="j-date" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Job Type</label>
+                                <select id="j-type" class="form-control" required>
+                                    <option value="">Select Type</option>
+                                    <option value="New Installation">New Installation</option>
+                                    <option value="Relocation">Relocation</option>
+                                    <option value="Upgrade">Upgrade</option>
+                                    <option value="Reconnection">Reconnection</option>
+                                    <option value="Fault Replacement">Fault Replacement</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <h4>1. Customer & Service Information</h4>
+                        <div class="form-row">
+                            <div class="form-group"><label>Customer Name</label><input type="text" id="j-cust-name" class="form-control" required></div>
+                            <div class="form-group"><label>Account No.</label><input type="text" id="j-account-no" class="form-control"></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group"><label>Phone Number</label><input type="tel" id="j-cust-phone" class="form-control" required></div>
+                            <div class="form-group"><label>Alt. Phone Number</label><input type="tel" id="j-alt-phone" class="form-control"></div>
+                        </div>
+                        <div class="form-group"><label>Installation Address</label><input type="text" id="j-address" class="form-control" required></div>
+                        <div class="form-row">
+                            <div class="form-group"><label>GPS / Location</label><input type="text" id="j-gps" class="form-control" placeholder="e.g., -1.2921, 36.8219"></div>
+                            <div class="form-group"><label>Package / Speed</label><input type="text" id="j-package" class="form-control" placeholder="e.g., 10Mbps"></div>
+                            <div class="form-group"><label>Sales Agent / Source</label><input type="text" id="j-sales-agent" class="form-control"></div>
+                        </div>
+
+                        <h4>2. Job Assignment & Technician Details</h4>
+                        <div class="form-row">
+                            <div class="form-group"><label>Assigned By</label><input type="text" id="j-assigned-by" class="form-control"></div>
+                            <div class="form-group"><label>Date Assigned</label><input type="date" id="j-date-assigned" class="form-control"></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group"><label>Technician Name(s)</label><input type="text" id="j-tech" class="form-control" value="${currentUser.name}" readonly></div>
+                            <div class="form-group"><label>Technician Contact</label><input type="text" id="j-tech-contact" class="form-control" placeholder="Phone number"></div>
+                            <div class="form-group"><label>Vehicle / Reg No.</label><input type="text" id="j-vehicle" class="form-control" placeholder="e.g., KDA 123X"></div>
+                        </div>
+
+                        <h4>3. Installation Checklist (Basic)</h4>
+                        <div style="margin-bottom: 20px;">${checklistHTML}</div>
+
+                        <h4>4. Equipment / Materials Installed</h4>
+                        <div class="table-responsive">
+                            <table class="equipment-table">
+                                <thead><tr><th>ITEM</th><th>MODEL</th><th>SERIAL/MAC ADDRESS</th><th>QTY</th><th>CONDITION</th></tr></thead>
+                                <tbody>
+                                    <tr><td>ONT</td><td><input type="text" id="eq-ont-model"></td><td><input type="text" id="eq-ont-sn"></td><td><input type="number" id="eq-ont-qty" style="width: 60px;"></td><td><input type="text" id="eq-ont-cond" placeholder="New/Used"></td></tr>
+                                    <tr><td>Router</td><td><input type="text" id="eq-router-model"></td><td><input type="text" id="eq-router-sn"></td><td><input type="number" id="eq-router-qty" style="width: 60px;"></td><td><input type="text" id="eq-router-cond" placeholder="New/Used"></td></tr>
+                                    <tr><td>Power Adapter</td><td><input type="text" id="eq-power-model"></td><td><input type="text" id="eq-power-sn"></td><td><input type="number" id="eq-power-qty" style="width: 60px;"></td><td><input type="text" id="eq-power-cond" placeholder="New/Used"></td></tr>
+                                    <tr><td>Fibre Patch Cord</td><td><input type="text" id="eq-patch-model"></td><td><input type="text" id="eq-patch-sn"></td><td><input type="number" id="eq-patch-qty" style="width: 60px;"></td><td><input type="text" id="eq-patch-cond" placeholder="New/Used"></td></tr>
+                                    <tr><td>Fibre Cable (Drop)</td><td><input type="text" id="eq-drop-model"></td><td><input type="text" id="eq-drop-sn"></td><td><input type="number" id="eq-drop-qty" style="width: 60px;"></td><td><input type="text" id="eq-drop-cond" placeholder="New/Used"></td></tr>
+                                    <tr><td>Other (Specify)</td><td><input type="text" id="eq-other-model"></td><td><input type="text" id="eq-other-sn"></td><td><input type="number" id="eq-other-qty" style="width: 60px;"></td><td><input type="text" id="eq-other-cond" placeholder="New/Used"></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <h4>5. Customer Acceptance</h4>
+                        <p style="font-size: 0.85rem; color: var(--text-gray); margin-bottom: 10px;">I confirm that the above installation has been completed, tested and demonstrated to me. I am satisfied with the service and accept the installation.</p>
+                        <div class="form-row">
+                            <div class="form-group"><label>Customer Name</label><input type="text" id="j-cust-sign-name" class="form-control" required></div>
+                            <div class="form-group"><label>Customer Signature (Type Full Name)</label><input type="text" id="j-cust-signature" class="form-control" required></div>
+                            <div class="form-group"><label>Phone Number</label><input type="tel" id="j-cust-sign-phone" class="form-control"></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group"><label>Date</label><input type="date" id="j-cust-sign-date" class="form-control"></div>
+                            <div class="form-group"><label>Time</label><input type="time" id="j-cust-sign-time" class="form-control"></div>
+                        </div>
+
+                        <h4>6. Technician Declaration</h4>
+                        <p style="font-size: 0.85rem; color: var(--text-gray); margin-bottom: 10px;">I confirm that the installation has been carried out as per MPAPS standards, all information above is correct and the customer has been briefed on the service and equipment.</p>
+                        <div class="form-row">
+                            <div class="form-group"><label>Technician Name</label><input type="text" id="j-tech-declare-name" class="form-control" value="${currentUser.name}" readonly></div>
+                            <div class="form-group"><label>Technician Signature (Type Full Name)</label><input type="text" id="j-tech-signature" class="form-control" required></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group"><label>Date</label><input type="date" id="j-tech-date" class="form-control"></div>
+                            <div class="form-group"><label>Time</label><input type="time" id="j-tech-time" class="form-control"></div>
+                        </div>
+
+                        <div class="admin-section">
+                            <h4>7. Supervisor / NOC Verification (Admin Use Only)</h4>
+                            <p class="note">This section is locked for technicians. It will be filled by the Admin/NOC upon review.</p>
+                            <p style="font-size: 0.85rem; color: var(--text-gray); margin-bottom: 10px;">I confirm that I have reviewed the job card, verified the information and approve the job closure.</p>
+                            <div class="form-row">
+                                <div class="form-group"><label>Name</label><input type="text" id="j-supervisor-name" class="form-control" readonly placeholder="Pending Admin Review"></div>
+                                <div class="form-group"><label>Signature</label><input type="text" id="j-supervisor-signature" class="form-control" readonly placeholder="Pending Admin Review"></div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group"><label>Date</label><input type="date" id="j-supervisor-date" class="form-control" readonly></div>
+                                <div class="form-group"><label>Time</label><input type="time" id="j-supervisor-time" class="form-control" readonly></div>
+                            </div>
+                        </div>
+
+                        <h4>8. Issues / Remarks</h4>
+                        <div class="form-group"><textarea id="j-remarks" class="form-control" rows="3" placeholder="If any outstanding issue or additional notes, specify below"></textarea></div>
+
+                        <div style="margin-top: 20px; padding: 15px; background: rgba(230, 0, 0, 0.1); border-left: 4px solid var(--mpaps-red); border-radius: 4px;">
+                            <p style="font-size: 0.8rem; font-weight: bold; color: var(--mpaps-red); text-transform: uppercase; margin-bottom: 5px;">Control Note:</p>
+                            <p style="font-size: 0.8rem; color: var(--text-gray);">NO INSTALLATION SHOULD BE CONSIDERED COMPLETE OR CLOSED WITHOUT A FULLY COMPLETED JOB CARD AND CUSTOMER SIGN-OFF.</p>
+                        </div>
+
+                        <button type="submit" class="btn btn-success mt-3" style="width: 100%;">Submit Job Card</button>
+                    </form>
+                </div>
+            `;
+            document.getElementById('dynamic-view').innerHTML = html;
+        }
+
+        function submitJobCard(e) {
+            e.preventDefault();
+            
+            const checklistData = {};
+            for(let i = 1; i <= 14; i++) {
+                const selected = document.querySelector(`input[name="chk${i}"]:checked`);
+                checklistData[`chk${i}`] = selected ? selected.value : 'N/A';
+            }
+
+            const equipmentData = {
+                ont: { model: document.getElementById('eq-ont-model').value, sn: document.getElementById('eq-ont-sn').value, qty: document.getElementById('eq-ont-qty').value, cond: document.getElementById('eq-ont-cond').value },
+                router: { model: document.getElementById('eq-router-model').value, sn: document.getElementById('eq-router-sn').value, qty: document.getElementById('eq-router-qty').value, cond: document.getElementById('eq-router-cond').value },
+                power: { model: document.getElementById('eq-power-model').value, sn: document.getElementById('eq-power-sn').value, qty: document.getElementById('eq-power-qty').value, cond: document.getElementById('eq-power-cond').value },
+                patch: { model: document.getElementById('eq-patch-model').value, sn: document.getElementById('eq-patch-sn').value, qty: document.getElementById('eq-patch-qty').value, cond: document.getElementById('eq-patch-cond').value },
+                drop: { model: document.getElementById('eq-drop-model').value, sn: document.getElementById('eq-drop-sn').value, qty: document.getElementById('eq-drop-qty').value, cond: document.getElementById('eq-drop-cond').value },
+                other: { model: document.getElementById('eq-other-model').value, sn: document.getElementById('eq-other-sn').value, qty: document.getElementById('eq-other-qty').value, cond: document.getElementById('eq-other-cond').value }
+            };
+
+            const jobData = {
+                id: Date.now().toString(),
+                technicianId: currentUser.id,
+                jobNo: document.getElementById('j-no').value,
+                date: document.getElementById('j-date').value,
+                jobType: document.getElementById('j-type').value,
+                
+                customerName: document.getElementById('j-cust-name').value,
+                accountNo: document.getElementById('j-account-no').value,
+                customerPhone: document.getElementById('j-cust-phone').value,
+                altPhone: document.getElementById('j-alt-phone').value,
+                address: document.getElementById('j-address').value,
+                gps: document.getElementById('j-gps').value,
+                package: document.getElementById('j-package').value,
+                salesAgent: document.getElementById('j-sales-agent').value,
+                
+                assignedBy: document.getElementById('j-assigned-by').value,
+                dateAssigned: document.getElementById('j-date-assigned').value,
+                technician: document.getElementById('j-tech').value,
+                techContact: document.getElementById('j-tech-contact').value,
+                vehicle: document.getElementById('j-vehicle').value,
+                
+                checklist: checklistData,
+                equipment: equipmentData,
+                
+                customerSignatureName: document.getElementById('j-cust-sign-name').value,
+                customerSignature: document.getElementById('j-cust-signature').value,
+                customerSignPhone: document.getElementById('j-cust-sign-phone').value,
+                customerSignDate: document.getElementById('j-cust-sign-date').value,
+                customerSignTime: document.getElementById('j-cust-sign-time').value,
+                
+                techDeclareName: document.getElementById('j-tech-declare-name').value,
+                techSignature: document.getElementById('j-tech-signature').value,
+                techDate: document.getElementById('j-tech-date').value,
+                techTime: document.getElementById('j-tech-time').value,
+                
+                supervisorName: null,
+                supervisorSignature: null,
+                supervisorDate: null,
+                supervisorTime: null,
+                
+                remarks: document.getElementById('j-remarks').value,
+                status: 'pending'
+            };
+
+            DB.saveJobCard(jobData);
+            alert('Job Card submitted successfully! Admin has been notified.');
+            renderTechDashboard();
+        }
+
+        // --- 9. MODAL & VERIFICATION FUNCTIONS ---
+        function closeModal() {
+            const modal = document.getElementById('modal-container');
+            modal.classList.add('hidden');
+            modal.innerHTML = '';
+        }
+
+        function viewReceipt(id) {
+            const mileage = DB.getMileage();
+            const record = mileage.find(m => m.id === id);
+            if (!record || !record.receiptData) return;
+
+            const isPDF = record.receiptName.toLowerCase().endsWith('.pdf');
+            
+            let receiptHTML = '';
+            if (isPDF) {
+                receiptHTML = `<embed src="${record.receiptData}" type="application/pdf" width="100%" height="500px" />`;
+            } else {
+                receiptHTML = `<img src="${record.receiptData}" class="receipt-preview" alt="Fuel Receipt" />`;
+            }
+
+            const modal = document.getElementById('modal-container');
+            modal.classList.remove('hidden');
+            modal.innerHTML = `
+                <div class="modal-overlay">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3>Fuel Receipt Verification</h3>
+                            <button class="btn btn-outline btn-small" onclick="closeModal()">Close</button>
+                        </div>
+                        <div class="modal-body">
+                            <p style="margin-bottom: 10px; color: var(--text-gray);">File: ${record.receiptName}</p>
+                            <p style="margin-bottom: 15px; color: var(--text-gray);">Vehicle: ${record.vehicle} | Date: ${record.date} | Amount: Ksh ${record.fuelAmount}</p>
+                            ${receiptHTML}
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn btn-success" onclick="closeModal()">Verified</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function viewJobCard(id) {
+            const jobcards = DB.getJobCards();
+            const job = jobcards.find(j => j.id === id);
+            if (!job) return;
+
+            // Generate checklist HTML for view
+            let checklistHTML = '';
+            for(let i = 1; i <= 14; i++) {
+                const val = job.checklist[`chk${i}`] || 'N/A';
+                const color = val === 'Yes' ? 'var(--mpaps-green)' : (val === 'No' ? 'var(--mpaps-red)' : 'var(--text-gray)');
+                checklistHTML += `<div style="display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid #1E3A8A;">
+                    <span>Item ${i}</span> <span style="color:${color}; font-weight:bold;">${val}</span>
+                </div>`;
+            }
+
+            const modal = document.getElementById('modal-container');
+            modal.classList.remove('hidden');
+            modal.innerHTML = `
+                <div class="modal-overlay">
+                    <div class="modal-content" style="max-width: 900px;">
+                        <div class="modal-header">
+                            <h3>Job Card Details: ${job.jobNo}</h3>
+                            <button class="btn btn-outline btn-small" onclick="closeModal()">Close</button>
+                        </div>
+                        <div class="modal-body" style="font-size: 0.9rem;">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                                <div>
+                                    <h4 style="color: var(--mpaps-yellow); border-bottom: 1px solid var(--border-color); padding-bottom: 5px;">1. Customer Info</h4>
+                                    <p><strong>Name:</strong> ${job.customerName}</p>
+                                    <p><strong>Phone:</strong> ${job.customerPhone}</p>
+                                    <p><strong>Address:</strong> ${job.address}</p>
+                                    <p><strong>Package:</strong> ${job.package}</p>
+                                    <p><strong>Job Type:</strong> ${job.jobType}</p>
+                                </div>
+                                <div>
+                                    <h4 style="color: var(--mpaps-yellow); border-bottom: 1px solid var(--border-color); padding-bottom: 5px;">2. Technician Info</h4>
+                                    <p><strong>Technician:</strong> ${job.technician}</p>
+                                    <p><strong>Vehicle:</strong> ${job.vehicle}</p>
+                                    <p><strong>Date Assigned:</strong> ${job.dateAssigned}</p>
+                                </div>
+                            </div>
+                            
+                            <h4 style="color: var(--mpaps-yellow); border-bottom: 1px solid var(--border-color); padding-bottom: 5px; margin-top: 20px;">3. Checklist Results</h4>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                ${checklistHTML}
+                            </div>
+
+                            <h4 style="color: var(--mpaps-yellow); border-bottom: 1px solid var(--border-color); padding-bottom: 5px; margin-top: 20px;">5. Customer Acceptance</h4>
+                            <p><strong>Customer Signature:</strong> ${job.customerSignature} (Signed on ${job.customerSignDate} at ${job.customerSignTime})</p>
+                            
+                            <h4 style="color: var(--mpaps-yellow); border-bottom: 1px solid var(--border-color); padding-bottom: 5px; margin-top: 20px;">6. Technician Declaration</h4>
+                            <p><strong>Technician Signature:</strong> ${job.techSignature} (Signed on ${job.techDate} at ${job.techTime})</p>
+
+                            <h4 style="color: var(--mpaps-yellow); border-bottom: 1px solid var(--border-color); padding-bottom: 5px; margin-top: 20px;">8. Remarks</h4>
+                            <p>${job.remarks || 'No remarks provided.'}</p>
+                        </div>
+                        <div class="modal-footer">
+                            ${job.status === 'pending' ? `
+                                <button class="btn btn-success" onclick="updateJobStatus('${job.id}', 'approved')">Approve Job</button>
+                                <button class="btn btn-danger" onclick="updateJobStatus('${job.id}', 'rejected')">Reject Job</button>
+                            ` : `<span class="status-badge status-${job.status}">${job.status}</span>`}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function updateJobStatus(id, status) {
+            DB.updateJobCard(id, status, currentUser.name);
+            alert(`Job Card ${status} successfully!`);
+            closeModal();
+            renderAdminDashboard();
+        }
+
+        // --- 10. UTILITIES (CSV EXPORT) ---
+        function downloadCSV(type) {
+            let data = [];
+            let filename = '';
+            
+            if (type === 'mileage') {
+                data = DB.getMileage();
+                filename = 'MPAPS_Mileage_Report.csv';
+            } else {
+                data = DB.getJobCards();
+                filename = 'MPAPS_JobCards_Report.csv';
+            }
+
+            if (data.length === 0) {
+                alert('No data to download.');
+                return;
+            }
+
+            const flattenObject = (obj) => {
+                let result = {};
+                for (let key in obj) {
+                    if (typeof obj[key] === 'object' && obj[key] !== null) {
+                        let flatObj = flattenObject(obj[key]);
+                        for (let subKey in flatObj) {
+                            result[`${key}_${subKey}`] = flatObj[subKey];
+                        }
+                    } else {
+                        result[key] = obj[key];
+                    }
+                }
+                return result;
+            };
+
+            const flattenedData = data.map(item => flattenObject(item));
+            const headers = Object.keys(flattenedData[0]).join(',');
+            const rows = flattenedData.map(obj => 
+                Object.values(obj).map(val => `"${val !== null && val !== undefined ? val : ''}"`).join(',')
+            );
+            const csvContent = [headers, ...rows].join('\n');
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            
+            link.setAttribute('href', url);
+            link.setAttribute('download', filename);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Initialize the app on page load
+        initApp();
+    </script>
+</body>
+</html>

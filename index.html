@@ -1,8 +1,14 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#050C1D">
+    
+    <!-- Embedded PWA Manifest -->
+    <link rel="manifest" href='data:application/manifest+json,{"name":"MPAPS Internet Solutions Ltd","short_name":"MPAPS","start_url":"./","display":"standalone","background_color":"#050C1D","theme_color":"#E60000","orientation":"portrait-primary","icons":[{"src":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cGF0aCBkPSJNNTAgODVDNTUuNTIyOCA4NSA2MCA4MC41MjI4IDYwIDc1QzYwIDY5LjQ3NzIgNTUuNTIyOCA2NSA1MCA2NUM0NC40NzcyIDY1IDQwIDY5LjQ3NzIgNDAgNzVDNDAgODAuNTIyOCA0NC40NzcyIDg1IDUwIDg1WiIgZmlsbD0iIzAwRDAwMCIvPjxwYXRoIGQ9Ik0zMCA1NUM0MS4wNDU3IDQzLjk1NDMgNTguOTU0MyA0My45NTQzIDcwIDU1IiBzdHJva2U9IiMwMEQwMDAiIHN0cm9rZS13aWR0aD0iMTAiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjxwYXRoIGQ9Ik0xNSAzNUMzNS41IDE0LjUgNjQuNSAxNC41IDg1IDM1IiBzdHJva2U9IiMwMEQwMDAiIHN0cm9rZS13aWR0aD0iMTAiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjwvc3ZnPg==","sizes":"192x192","type":"image/svg+xml","purpose":"any maskable"},{"src":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cGF0aCBkPSJNNTAgODVDNTUuNTIyOCA4NSA2MCA4MC41MjI4IDYwIDc1QzYwIDY5LjQ3NzIgNTUuNTIyOCA2NSA1MCA2NUM0NC40NzcyIDY1IDQwIDY5LjQ3NzIgNDAgNzVDNDAgODAuNTIyOCA0NC40NzcyIDg1IDUwIDg1WiIgZmlsbD0iIzAwRDAwMCIvPjxwYXRoIGQ9Ik0zMCA1NUM0MS4wNDU3IDQzLjk1NDMgNTguOTU0MyA0My45NTQzIDcwIDU1IiBzdHJva2U9IiMwMEQwMDAiIHN0cm9rZS13aWR0aD0iMTAiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjxwYXRoIGQ9Ik0xNSAzNUMzNS41IDE0LjUgNjQuNSAxNC41IDg1IDM1IiBzdHJva2U9IiMwMEQwMDAiIHN0cm9rZS13aWR0aD0iMTAiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjwvc3ZnPg==","sizes":"512x512","type":"image/svg+xml","purpose":"any maskable"}]}' />
+
     <title>MPAPS Internet Solutions Ltd - Management System</title>
     <style>
         /* --- MPAPS BRAND COLORS --- */
@@ -211,6 +217,8 @@
             </div>
         </div>
         <div class="user-info">
+            <!-- PWA Install Button (Hidden by default) -->
+            <button id="install-btn" class="btn btn-warning btn-small hidden" onclick="installApp()">📲 Install App</button>
             <span id="header-user-name">User</span>
             <button class="btn btn-outline btn-small" onclick="logout()">Logout</button>
         </div>
@@ -225,17 +233,69 @@
     <div id="modal-container" class="hidden"></div>
 
     <script>
+        // --- PWA REGISTRATION (Embedded) ---
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            document.getElementById('install-btn').classList.remove('hidden');
+        });
+
+        function installApp() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('User accepted the install prompt');
+                    }
+                    deferredPrompt = null;
+                    document.getElementById('install-btn').classList.add('hidden');
+                });
+            }
+        }
+
+        // Embedded Service Worker
+        const swCode = `
+            const CACHE_NAME = 'mpaps-cache-v1';
+            self.addEventListener('install', event => {
+                self.skipWaiting();
+            });
+            self.addEventListener('activate', event => {
+                event.waitUntil(clients.claim());
+            });
+            self.addEventListener('fetch', event => {
+                // Basic offline capability
+                event.respondWith(
+                    caches.match(event.request).then(response => {
+                        return response || fetch(event.request);
+                    }).catch(() => {
+                        // Fallback for offline document
+                        if (event.request.mode === 'navigate') {
+                            return caches.match('/');
+                        }
+                    })
+                );
+            });
+        `;
+
+        if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+            const blob = new Blob([swCode], { type: 'application/javascript' });
+            const swUrl = URL.createObjectURL(blob);
+            navigator.serviceWorker.register(swUrl).then(registration => {
+                console.log('SW registered: ', registration);
+            }).catch(err => {
+                console.log('SW registration failed: ', err);
+            });
+        }
+
         // --- 1. DATABASE SIMULATION (LocalStorage) ---
         const DB = {
-            // Device Locking
             isDeviceLocked: () => localStorage.getItem('mpaps_device_locked') === 'true',
             lockDevice: () => localStorage.setItem('mpaps_device_locked', 'true'),
 
-            // Users
             getUsers: () => JSON.parse(localStorage.getItem('mpaps_users')) || [],
             saveUsers: (users) => localStorage.setItem('mpaps_users', JSON.stringify(users)),
             
-            // Mileage
             getMileage: () => JSON.parse(localStorage.getItem('mpaps_mileage')) || [],
             saveMileage: (data) => {
                 const existing = DB.getMileage();
@@ -243,7 +303,6 @@
                 localStorage.setItem('mpaps_mileage', JSON.stringify(existing));
             },
             
-            // Job Cards
             getJobCards: () => JSON.parse(localStorage.getItem('mpaps_jobcards')) || [],
             saveJobCard: (data) => {
                 const existing = DB.getJobCards();
@@ -336,7 +395,7 @@
             };
 
             DB.saveUsers([masterAdmin]);
-            DB.lockDevice(); // Lock this device to prevent future admin setups
+            DB.lockDevice();
             alert('Master Admin created successfully! This device is now locked for Admin setup. You can now log in.');
             renderLogin();
         }
@@ -1170,7 +1229,7 @@
 
             let checklistHTML = '';
             for(let i = 1; i <= 14; i++) {
-                const val = job.checklist[`chk${i}`] || 'N/A';
+                const val = job.checklist && job.checklist[`chk${i}`] ? job.checklist[`chk${i}`] : 'N/A';
                 const color = val === 'Yes' ? 'var(--mpaps-green)' : (val === 'No' ? 'var(--mpaps-red)' : 'var(--text-gray)');
                 checklistHTML += `<div style="display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid #1E3A8A;">
                     <span>Item ${i}</span> <span style="color:${color}; font-weight:bold;">${val}</span>
@@ -1236,82 +1295,85 @@
             renderAdminDashboard();
         }
 
-        // --- 10. UTILITIES (CSV EXPORT - CLEAN FORMAT) ---
+        // --- 10. UTILITIES (CSV EXPORT - FIXED AND SECURED) ---
         function downloadCSV(type) {
-            let data = [];
-            let filename = '';
-            
-            if (type === 'mileage') {
-                data = DB.getMileage();
-                filename = 'MPAPS_Mileage_Report.csv';
-            } else {
-                data = DB.getJobCards();
-                filename = 'MPAPS_JobCards_Report.csv';
-            }
+            try {
+                let data = type === 'mileage' ? DB.getMileage() : DB.getJobCards();
+                
+                if (!data || data.length === 0) {
+                    alert('No data to download.');
+                    return;
+                }
 
-            if (data.length === 0) {
-                alert('No data to download.');
-                return;
-            }
+                let headers = [];
+                let rows = [];
 
-            let headers = [];
-            let rows = [];
-
-            if (type === 'mileage') {
-                headers = [
-                    "Date", "Driver", "Vehicle", "From", "Dep Time", "Dep Mileage", 
-                    "To", "Arr Time", "Arr Mileage", "Total KM", "Fuel Qty (L)", 
-                    "Fuel Amount (Ksh)", "Receipt Attached", "Remarks"
-                ];
-                rows = data.map(m => [
-                    m.date, m.driver, m.vehicle, m.from, m.depTime, m.departureMileage,
-                    m.to, m.arrTime, m.arrivalMileage, (m.arrivalMileage - m.departureMileage),
-                    m.fuelQty, m.fuelAmount, m.receiptName ? 'Yes' : 'No', m.remarks
-                ]);
-            } else {
-                // Job Cards - Flatten Checklist and Equipment
-                headers = [
-                    "Job No", "Date", "Job Type", "Technician", "Customer Name", "Phone", 
-                    "Address", "Package", "Status", "Remarks"
-                ];
-                // Add Checklist Headers
-                for(let i=1; i<=14; i++) headers.push(`Checklist ${i}`);
-                // Add Equipment Headers
-                headers.push("ONT Model", "ONT SN", "Router Model", "Router SN", "Drop Cable");
-
-                rows = data.map(j => {
-                    let row = [
-                        j.jobNo, j.date, j.jobType, j.technician, j.customerName, j.customerPhone,
-                        j.address, j.package, j.status || 'Pending', j.remarks
+                if (type === 'mileage') {
+                    headers = [
+                        "Date", "Driver", "Vehicle", "From", "Dep Time", "Dep Mileage", 
+                        "To", "Arr Time", "Arr Mileage", "Total KM", "Fuel Qty (L)", 
+                        "Fuel Amount (Ksh)", "Receipt Attached", "Remarks"
                     ];
-                    // Add Checklist Values
-                    for(let i=1; i<=14; i++) row.push(j.checklist[`chk${i}`] || 'N/A');
-                    // Add Equipment Values
-                    row.push(
-                        j.equipment.ont.model || '', j.equipment.ont.sn || '',
-                        j.equipment.router.model || '', j.equipment.router.sn || '',
-                        j.equipment.drop.model || ''
-                    );
-                    return row;
-                });
+                    rows = data.map(m => [
+                        m.date || '', m.driver || '', m.vehicle || '', m.from || '', m.depTime || '', m.departureMileage || 0,
+                        m.to || '', m.arrTime || '', m.arrivalMileage || 0, ((m.arrivalMileage || 0) - (m.departureMileage || 0)),
+                        m.fuelQty || '0', m.fuelAmount || '0', m.receiptName ? 'Yes' : 'No', m.remarks || ''
+                    ]);
+                } else {
+                    // Job Cards - Safely flatten Checklist and Equipment
+                    headers = [
+                        "Job No", "Date", "Job Type", "Technician", "Customer Name", "Phone", 
+                        "Address", "Package", "Status", "Remarks"
+                    ];
+                    for(let i=1; i<=14; i++) headers.push(`Checklist ${i}`);
+                    headers.push("ONT Model", "ONT SN", "Router Model", "Router SN", "Drop Cable");
+
+                    rows = data.map(j => {
+                        let row = [
+                            j.jobNo || '', j.date || '', j.jobType || '', j.technician || '', 
+                            j.customerName || '', j.customerPhone || '', j.address || '', 
+                            j.package || '', j.status || 'Pending', j.remarks || ''
+                        ];
+                        
+                        // Safely add checklist
+                        for(let i=1; i<=14; i++) {
+                            row.push(j.checklist && j.checklist[`chk${i}`] ? j.checklist[`chk${i}`] : 'N/A');
+                        }
+                        
+                        // Safely add equipment
+                        const eq = j.equipment || {};
+                        row.push(
+                            (eq.ont && eq.ont.model) ? eq.ont.model : '',
+                            (eq.ont && eq.ont.sn) ? eq.ont.sn : '',
+                            (eq.router && eq.router.model) ? eq.router.model : '',
+                            (eq.router && eq.router.sn) ? eq.router.sn : '',
+                            (eq.drop && eq.drop.model) ? eq.drop.model : ''
+                        );
+                        return row;
+                    });
+                }
+
+                // Build CSV String with proper escaping
+                const csvContent = [
+                    headers.map(h => `"${h}"`).join(','),
+                    ...rows.map(r => r.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+                ].join('\r\n'); // Use \r\n for better Excel compatibility
+
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                const url = URL.createObjectURL(blob);
+                
+                link.setAttribute('href', url);
+                link.setAttribute('download', type === 'mileage' ? 'MPAPS_Mileage_Report.csv' : 'MPAPS_JobCards_Report.csv');
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+            } catch (error) {
+                console.error("CSV Download Error:", error);
+                alert("An error occurred while generating the CSV file. Please check the browser console for details.");
             }
-
-            // Build CSV String with proper escaping
-            const csvContent = [
-                headers.map(h => `"${h}"`).join(','),
-                ...rows.map(r => r.map(cell => `"${String(cell || '').replace(/"/g, '""')}"`).join(','))
-            ].join('\r\n'); // Use \r\n for better Excel compatibility
-
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            const url = URL.createObjectURL(blob);
-            
-            link.setAttribute('href', url);
-            link.setAttribute('download', filename);
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
         }
 
         // Initialize the app on page load

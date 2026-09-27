@@ -97,6 +97,23 @@
         .dashboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; flex-wrap: wrap; gap: 15px; }
         .dashboard-header h2 { font-size: 1.8rem; color: var(--text-light); }
 
+        /* --- NOTIFICATION BANNER --- */
+        .notification-banner {
+            background: rgba(255, 215, 0, 0.1);
+            border-left: 5px solid var(--mpaps-yellow);
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .notification-content h4 { color: var(--mpaps-yellow); margin-bottom: 5px; font-size: 1.1rem; }
+        .notification-content p { color: var(--text-light); font-size: 0.9rem; margin-bottom: 3px; }
+        .notification-badge { background: var(--mpaps-red); color: white; padding: 3px 8px; border-radius: 12px; font-size: 0.8rem; font-weight: bold; margin-left: 5px; }
+
         .grid-menu { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
         .card {
             background: var(--card-bg); padding: 1.5rem; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); border-left: 4px solid var(--mpaps-green); transition: transform 0.2s;
@@ -174,6 +191,7 @@
             main { padding: 1rem; }
             .auth-container { margin: 10px auto; padding: 1.5rem; }
             .checklist-item { flex-direction: column; align-items: flex-start; }
+            .notification-banner { flex-direction: column; align-items: flex-start; }
         }
     </style>
 </head>
@@ -335,7 +353,6 @@
             const dynamicView = document.getElementById('dynamic-view');
             const modalContainer = document.getElementById('modal-container');
             
-            // Close any open modals on navigation
             modalContainer.classList.add('hidden');
             modalContainer.innerHTML = '';
 
@@ -343,7 +360,6 @@
                 header.classList.add('hidden');
                 const users = DB.getUsers();
                 
-                // Check Device Lock Logic
                 if (users.length === 0 && !DB.isDeviceLocked()) {
                     renderFirstTimeSetup();
                 } else {
@@ -443,12 +459,30 @@
             const jobcards = DB.getJobCards();
             const users = DB.getUsers();
             const pendingTechs = users.filter(u => u.role === 'technician' && u.status === 'pending');
+            const pendingJobs = jobcards.filter(j => j.status === 'pending' || !j.status).length;
+            const totalPending = pendingTechs.length + pendingJobs;
+
+            let notificationHTML = '';
+            if (totalPending > 0) {
+                notificationHTML = `
+                    <div class="notification-banner">
+                        <div class="notification-content">
+                            <h4>🔔 New Notifications <span class="notification-badge">${totalPending} New</span></h4>
+                            ${pendingTechs.length > 0 ? `<p>• ${pendingTechs.length} new technician(s) require approval.</p>` : ''}
+                            ${pendingJobs > 0 ? `<p>• ${pendingJobs} new Job Card(s) require review.</p>` : ''}
+                            ${mileage.length > 0 ? `<p>• ${mileage.length} Mileage Sheet(s) submitted.</p>` : ''}
+                        </div>
+                    </div>
+                `;
+            }
             
             let html = `
                 <div class="dashboard-header">
                     <h2>Admin Dashboard</h2>
-                    ${currentUser.isMaster ? `<button class="btn btn-primary" onclick="renderCreateAdminForm()">+ Create New Admin</button>` : ''}
+                    <button class="btn btn-primary" onclick="renderCreateAdminForm()">+ Create New Admin</button>
                 </div>
+
+                ${notificationHTML}
 
                 ${pendingTechs.length > 0 ? `
                 <div class="form-section" style="border-top-color: var(--mpaps-yellow);">
@@ -843,7 +877,7 @@
                     fuelQty: document.getElementById('m-fuel-qty').value || '0',
                     fuelAmount: document.getElementById('m-fuel-amount').value || '0',
                     receiptName: receiptName,
-                    receiptData: receiptData, // Base64 string
+                    receiptData: receiptData,
                     remarks: document.getElementById('m-remarks').value,
                     status: 'pending'
                 };
@@ -854,7 +888,6 @@
             };
 
             if (file) {
-                // Check file size (limit to 2MB for localStorage safety)
                 if (file.size > 2 * 1024 * 1024) {
                     alert('File is too large. Please upload an image/PDF smaller than 2MB.');
                     return;
@@ -1135,7 +1168,6 @@
             const job = jobcards.find(j => j.id === id);
             if (!job) return;
 
-            // Generate checklist HTML for view
             let checklistHTML = '';
             for(let i = 1; i <= 14; i++) {
                 const val = job.checklist[`chk${i}`] || 'N/A';
@@ -1204,7 +1236,7 @@
             renderAdminDashboard();
         }
 
-        // --- 10. UTILITIES (CSV EXPORT) ---
+        // --- 10. UTILITIES (CSV EXPORT - CLEAN FORMAT) ---
         function downloadCSV(type) {
             let data = [];
             let filename = '';
@@ -1222,27 +1254,53 @@
                 return;
             }
 
-            const flattenObject = (obj) => {
-                let result = {};
-                for (let key in obj) {
-                    if (typeof obj[key] === 'object' && obj[key] !== null) {
-                        let flatObj = flattenObject(obj[key]);
-                        for (let subKey in flatObj) {
-                            result[`${key}_${subKey}`] = flatObj[subKey];
-                        }
-                    } else {
-                        result[key] = obj[key];
-                    }
-                }
-                return result;
-            };
+            let headers = [];
+            let rows = [];
 
-            const flattenedData = data.map(item => flattenObject(item));
-            const headers = Object.keys(flattenedData[0]).join(',');
-            const rows = flattenedData.map(obj => 
-                Object.values(obj).map(val => `"${val !== null && val !== undefined ? val : ''}"`).join(',')
-            );
-            const csvContent = [headers, ...rows].join('\n');
+            if (type === 'mileage') {
+                headers = [
+                    "Date", "Driver", "Vehicle", "From", "Dep Time", "Dep Mileage", 
+                    "To", "Arr Time", "Arr Mileage", "Total KM", "Fuel Qty (L)", 
+                    "Fuel Amount (Ksh)", "Receipt Attached", "Remarks"
+                ];
+                rows = data.map(m => [
+                    m.date, m.driver, m.vehicle, m.from, m.depTime, m.departureMileage,
+                    m.to, m.arrTime, m.arrivalMileage, (m.arrivalMileage - m.departureMileage),
+                    m.fuelQty, m.fuelAmount, m.receiptName ? 'Yes' : 'No', m.remarks
+                ]);
+            } else {
+                // Job Cards - Flatten Checklist and Equipment
+                headers = [
+                    "Job No", "Date", "Job Type", "Technician", "Customer Name", "Phone", 
+                    "Address", "Package", "Status", "Remarks"
+                ];
+                // Add Checklist Headers
+                for(let i=1; i<=14; i++) headers.push(`Checklist ${i}`);
+                // Add Equipment Headers
+                headers.push("ONT Model", "ONT SN", "Router Model", "Router SN", "Drop Cable");
+
+                rows = data.map(j => {
+                    let row = [
+                        j.jobNo, j.date, j.jobType, j.technician, j.customerName, j.customerPhone,
+                        j.address, j.package, j.status || 'Pending', j.remarks
+                    ];
+                    // Add Checklist Values
+                    for(let i=1; i<=14; i++) row.push(j.checklist[`chk${i}`] || 'N/A');
+                    // Add Equipment Values
+                    row.push(
+                        j.equipment.ont.model || '', j.equipment.ont.sn || '',
+                        j.equipment.router.model || '', j.equipment.router.sn || '',
+                        j.equipment.drop.model || ''
+                    );
+                    return row;
+                });
+            }
+
+            // Build CSV String with proper escaping
+            const csvContent = [
+                headers.map(h => `"${h}"`).join(','),
+                ...rows.map(r => r.map(cell => `"${String(cell || '').replace(/"/g, '""')}"`).join(','))
+            ].join('\r\n'); // Use \r\n for better Excel compatibility
 
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
